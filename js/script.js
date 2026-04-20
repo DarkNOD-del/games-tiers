@@ -506,6 +506,7 @@ document.getElementById("nextToStatsBtn").onclick = () => {
     if (document.getElementById("gameNameInput").value.trim()) {
         document.getElementById("step1").style.display = "none";
         document.getElementById("step2").style.display = "block";
+        document.getElementById("questionsList").scrollTop = 0;
     } else showToast("Введите название", "error");
 };
 document.getElementById("backToStep1Btn").onclick = () => {
