@@ -64,6 +64,12 @@ let editingMode = false,
     editingTarget = null,
     radarChart = null;
 
+function sortTiers() {
+    for (let tier of TIER_RULES) {
+        tierlistData[tier.id].sort((a, b) => b.avgScore - a.avgScore);
+    }
+}
+
 function showToast(msg, type = 'info') {
     let c = document.getElementById('toastContainer'),
         t = document.createElement('div');
@@ -101,6 +107,7 @@ function escapeHtml(s) {
 }
 
 function renderTiers() {
+    sortTiers();
     let c = document.getElementById("tiersContainer");
     c.innerHTML = "";
     for (let tier of TIER_RULES) {
@@ -387,6 +394,7 @@ function saveGame() {
         tierlistData[tier].push(newGame);
         showToast(`"${name}" добавлена в ${tier}`, "success");
     }
+    sortTiers();
     renderTiers();
     document.getElementById("editModal").style.display = "none";
     document.body.classList.remove('no-scroll');
@@ -400,6 +408,7 @@ function deleteCurrentGame() {
             game
         } = currentDetail;
         tierlistData[tierId].splice(idx, 1);
+        sortTiers();
         renderTiers();
         showToast(`"${game.name}" удалена`, "warning");
         document.getElementById("detailModal").style.display = "none";
@@ -477,6 +486,7 @@ document.getElementById("loadDataBtn").onclick = () => {
             try {
                 let data = JSON.parse(ev.target.result);
                 if (data.tiers) tierlistData = data.tiers;
+                sortTiers();
                 renderTiers();
                 showToast("Загружено", "success");
             } catch (e) {
