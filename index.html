@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+        <title>Games.Tiers — эстетичный тирлист</title>
+        <link rel="icon" type="image/x-icon" href="img/icons/shortcut_icon.png">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="css/style.css">
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>
+                    <img src="img/icons/shortcut_icon.png" alt="Games.Tiers" class="logo-img">
+                    <span class="gradient-text">Games.Tiers</span>
+                </h1>
+                <div class="action-buttons">
+                    <button id="addGameBtn" class="btn-primary">
+                        <i class="fas fa-plus-circle"></i> Новая игра </button>
+                    <button id="saveDataBtn" class="btn-save">
+                        <i class="fas fa-save"></i> Сохранить </button>
+                    <button id="loadDataBtn" class="btn-load">
+                        <i class="fas fa-folder-open"></i> Загрузить </button>
+                </div>
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="tierlist">
+                    <i class="fas fa-layer-group"></i> Тирлист </button>
+                <button class="tab-btn" data-tab="stats">
+                    <i class="fas fa-bar-chart"></i> Статистика </button>
+            </div>
+            <div id="tab-tierlist" class="tab-content active">
+                <div id="tiersContainer" class="tiers-grid"></div>
+            </div>
+            <div id="tab-stats" class="tab-content">
+                <div class="stats-container">
+                    <h3>
+                        <i class="fa-solid fa-medal"></i> Основная статистика
+                    </h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-gamepad"></i> Всего игр
+                            </h3>
+                            <div class="stat-value" id="statTotalGames">—</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-hourglass-half"></i> Среднее время
+                            </h3>
+                            <div class="stat-value" id="statAvgTime">—</div>
+                            <div class="stat-unit">часы</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="far fa-clock"></i> Всего часов
+                            </h3>
+                            <div class="stat-value" id="statTotalTime">—</div>
+                            <div class="stat-unit">часы</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-coins"></i> Средняя цена
+                            </h3>
+                            <div class="stat-value" id="statAvgPrice">—</div>
+                            <div class="stat-unit">₽</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-money-bill-wave"></i> Всего потрачено
+                            </h3>
+                            <div class="stat-value" id="statTotalPrice">—</div>
+                            <div class="stat-unit">₽</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-hdd"></i> Средний вес
+                            </h3>
+                            <div class="stat-value" id="statAvgSize">—</div>
+                            <div class="stat-unit">ГБ</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-container">
+                    <h3>
+                        <i class="fa-brands fa-hackerrank"></i> Самые запоминающиеся
+                    </h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-gem"></i> Самая дорогая
+                            </h3>
+                            <div class="stat-value" id="statMostExpensive">—</div>
+                            <div class="stat-unit">₽</div>
+                            <div class="stat-sub" id="statMostExpensiveGame"></div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-star"></i> Самые высокие оценки
+                            </h3>
+                            <div class="stat-value" id="statHighestRated">—</div>
+                            <div class="stat-unit">/10</div>
+                            <div class="stat-sub" id="statHighestRatedGame"></div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-weight-hanging"></i> Самая тяжелая
+                            </h3>
+                            <div class="stat-value" id="statLargestSize">—</div>
+                            <div class="stat-unit">ГБ</div>
+                            <div class="stat-sub" id="statLargestSizeGame"></div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-feather-alt"></i> Самая легкая
+                            </h3>
+                            <div class="stat-value" id="statSmallestSize">—</div>
+                            <div class="stat-unit">ГБ</div>
+                            <div class="stat-sub" id="statSmallestSizeGame"></div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-hourglass-end"></i> Самая длинная
+                            </h3>
+                            <div class="stat-value" id="statLongest">—</div>
+                            <div class="stat-unit">часы</div>
+                            <div class="stat-sub" id="statLongestGame"></div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>
+                                <i class="fas fa-hourglass-start"></i> Самая короткая
+                            </h3>
+                            <div class="stat-value" id="statShortest">—</div>
+                            <div class="stat-unit">часы</div>
+                            <div class="stat-sub" id="statShortestGame"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>
+                        <i class="fas fa-chart-pie"></i> Средние оценки по параметрам
+                    </h3>
+                    <div class="radar-wrapper">
+                        <canvas id="radarChartCanvas" width="400" height="400" style="width:100%; max-width: 400px; margin:0 auto; display:block;"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>
+                        <i class="fas fa-bar-chart"></i> Распределение по тирам
+                    </h3>
+                    <div id="tierChart" class="bar-chart"></div>
+                </div>
+            </div>
+        </div>
+        <div id="toastContainer" class="toast-container"></div>
+        <div id="editModal" class="modal">
+            <div class="modal-card">
+                <div id="step1">
+                    <h3 class="modal-title" id="modalTitle">
+                        <i class="fas fa-gamepad"></i> Новая игра
+                    </h3>
+                    <div class="dropzone" id="coverDropzone">
+                        <div class="cover-preview" id="coverPreview">
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:#94a3b8;"></i>
+                                <span style="font-size:12px;">Нажмите или перетащите</span>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="text" id="gameNameInput" class="game-name-input" placeholder="Название игры">
+                    <div class="modal-buttons">
+                        <button id="cancelEditBtn">Отмена</button>
+                        <button id="nextToStatsBtn" class="btn-primary">Далее</button>
+                    </div>
+                </div>
+                <div id="step2" style="display: none;">
+                    <h3 class="modal-title">
+                        <i class="fas fa-sliders-h"></i> Оценка игры
+                    </h3>
+                    <div id="questionsList"></div>
+                    <div class="modal-buttons">
+                        <button id="backToStep1Btn">Назад</button>
+                        <button id="nextToDetailsBtn" class="btn-primary">Далее</button>
+                    </div>
+                </div>
+                <div id="step3" style="display: none;">
+                    <h3 class="modal-title">
+                        <i class="fas fa-chart-line"></i> Характеристики
+                    </h3>
+                    <div class="stat-row">
+                        <label>
+                            <i class="far fa-clock"></i> Время прохождения </label>
+                        <input type="number" id="gameHours" step="0.5" placeholder="Часы">
+                    </div>
+                    <div class="stat-row">
+                        <label>
+                            <i class="fas fa-tag"></i> Стоимость </label>
+                        <input type="number" id="gamePrice" step="100" placeholder="Рубли">
+                    </div>
+                    <div class="stat-row">
+                        <label>
+                            <i class="fas fa-database"></i> Вес </label>
+                        <input type="number" id="gameSize" step="1" placeholder="ГБ">
+                    </div>
+                    <div class="modal-buttons">
+                        <button id="backToStep2Btn">Назад</button>
+                        <button id="submitGameBtn" class="btn-primary">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="detailModal" class="detail-modal">
+            <div class="modal-card">
+                <h3 id="detailTitle"></h3>
+                <div id="detailCover" style="min-height:160px; width:120px; aspect-ratio:9/12; margin:0 auto 1rem; background:#f1f5f9; border-radius:20px; overflow:hidden;"></div>
+                <div class="detail-tabs">
+                    <button class="detail-tab active" data-dtab="scores">
+                        <i class="fas fa-star"></i> Оценки </button>
+                    <button class="detail-tab" data-dtab="stats">
+                        <i class="fas fa-bar-chart"></i> Статистика </button>
+                </div>
+                <div id="detailScoresTab" class="detail-tab-content active">
+                    <div class="scores-list" id="detailScores"></div>
+                </div>
+                <div id="detailStatsTab" class="detail-tab-content">
+                    <div class="detail-stats" id="detailExtras"></div>
+                </div>
+                <div class="modal-buttons card-modal-buttons">
+                    <div class="modal-buttons-danger">
+                        <button id="deleteFromDetailBtn" class="btn-danger">Удалить</button>
+                    </div>
+                    <div class="modal-buttons-default">
+                        <button id="editFromDetailBtn" class="btn-primary">Редактировать</button>
+                        <button id="closeDetailBtn">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script src="js/script.js"></script>
+    </body>
+</html>
