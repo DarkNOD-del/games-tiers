@@ -830,6 +830,105 @@ input[type="range"]::-webkit-slider-thumb {
     font-family: inherit;
 }
 
+.dlc-checkbox-wrapper {
+    margin: 12px 0 8px;
+    display: flex;
+    align-items: center;
+}
+
+.custom-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+.custom-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.checkbox-style {
+    width: 20px;
+    height: 20px;
+    background: var(--bg-surface);
+    border: 2px solid var(--border-muted);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.custom-checkbox input:checked + .checkbox-style {
+    background: var(--btn-primary-bg);
+    border-color: var(--btn-primary-bg);
+}
+
+.custom-checkbox input:checked + .checkbox-style::after {
+    content: "\f00c";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 12px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.checkbox-label i {
+    margin-right: 6px;
+    color: var(--text-muted);
+}
+
+.game-dlc-badge {
+    position: absolute;
+    top: 34px;
+    right: 8px;
+    background: rgba(139, 92, 246, 0.85);
+    backdrop-filter: blur(4px);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: var(--radius-3xl);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    letter-spacing: 0.3px;
+}
+
+.game-dlc-badge i {
+    font-size: 0.7rem;
+}
+
+.detail-dlc-badge {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15));
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.detail-dlc-badge i {
+    color: #8b5cf6;
+    font-size: 0.75rem;
+}
+
 .stat-row {
     margin: var(--spacing-lg) 0;
 }
