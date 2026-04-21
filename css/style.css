@@ -632,7 +632,6 @@ button:hover {
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    max-width: 80px;
 }
 
 .bar {
@@ -646,6 +645,12 @@ button:hover {
 .bar-label {
     font-weight: 600;
     font-size: 0.9rem;
+    text-align: center;
+}
+
+.bar-count {
+    font-size: 0.8rem;
+    text-align: center;
 }
 
 .modal,
@@ -1046,6 +1051,12 @@ input[type="range"]::-webkit-slider-thumb {
     }
 }
 
+@media (max-width: 580px) {
+    .bar-item {
+        max-width: 40px;
+    }
+}
+
 @media (max-width: 540px) {
     .action-buttons {
         flex-wrap: wrap;
@@ -1061,11 +1072,19 @@ input[type="range"]::-webkit-slider-thumb {
         justify-content: right;
         flex-wrap: wrap;
     }
+
+    .bar-item {
+        max-width: 20px;
+    }
 }
 
 @media (max-width: 359px) {
     .tabs {
         flex-wrap: wrap;
+    }
+
+    .bar-item {
+        max-width: 15px;
     }
 }
 
