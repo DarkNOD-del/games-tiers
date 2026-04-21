@@ -170,6 +170,13 @@
                         </div>
                     </div>
                     <input type="text" id="gameNameInput" class="game-name-input" placeholder="Название игры">
+                    <div class="dlc-checkbox-wrapper">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="isDlcCheckbox">
+                            <span class="checkbox-style"></span>
+                            <span class="checkbox-label"><i class="fas fa-box-open"></i> Является DLC</span>
+                        </label>
+                    </div>
                     <div class="modal-buttons">
                         <button id="cancelEditBtn">Отмена</button>
                         <button id="nextToStatsBtn" class="btn-primary">Далее</button>
@@ -213,7 +220,7 @@
         </div>
         <div id="detailModal" class="detail-modal">
             <div class="modal-card">
-                <h3 id="detailTitle"></h3>
+                <h3 class="modal-title" id="detailTitle"></h3>
                 <div id="detailCover" style="min-height:160px; width:120px; aspect-ratio:9/12; margin:0 auto 1rem; background:#f1f5f9; border-radius:20px; overflow:hidden;"></div>
                 <div class="detail-tabs">
                     <button class="detail-tab active" data-dtab="scores">
