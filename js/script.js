@@ -64,6 +64,17 @@ let editingMode = false,
     editingTarget = null,
     radarChart = null;
 
+function formatNumber(num) {
+    if (num === null || num === undefined || isNaN(num)) return "—";
+    
+    let formatted = Number(num).toLocaleString('ru-RU', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
+
+    return formatted.replace(',', '.');
+}
+
 function sortTiers() {
     for (let tier of TIER_RULES) {
         tierlistData[tier.id].sort((a, b) => b.avgScore - a.avgScore);
@@ -197,19 +208,19 @@ function updateStats() {
     let all = [];
     for (let t of TIER_RULES) all.push(...tierlistData[t.id]);
     let total = all.length;
-    document.getElementById("statTotalGames").innerText = total;
+    document.getElementById("statTotalGames").innerText = formatNumber(total);
     let hours = all.filter(g => g.hours != null).map(g => g.hours);
-    document.getElementById("statAvgTime").innerText = hours.length ? (hours.reduce((a, b) => a + b, 0) / hours.length).toFixed(1) : "—";
-    document.getElementById("statTotalTime").innerText = hours.length ? hours.reduce((a, b) => a + b, 0).toFixed(1) : "—";
+    document.getElementById("statAvgTime").innerText = hours.length ? formatNumber((hours.reduce((a, b) => a + b, 0) / hours.length)) : "—";
+    document.getElementById("statTotalTime").innerText = hours.length ? formatNumber(hours.reduce((a, b) => a + b, 0)) : "—";
     let prices = all.filter(g => g.price != null).map(g => g.price);
-    document.getElementById("statAvgPrice").innerText = prices.length ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : "—";
-    document.getElementById("statTotalPrice").innerText = prices.length ? prices.reduce((a, b) => a + b, 0) : "—";
+    document.getElementById("statAvgPrice").innerText = prices.length ? formatNumber(prices.reduce((a, b) => a + b, 0) / prices.length) : "—";
+    document.getElementById("statTotalPrice").innerText = prices.length ? formatNumber(prices.reduce((a, b) => a + b, 0)) : "—";
     let sizes = all.filter(g => g.size != null).map(g => g.size);
-    document.getElementById("statAvgSize").innerText = sizes.length ? (sizes.reduce((a, b) => a + b, 0) / sizes.length).toFixed(1) : "—";
+    document.getElementById("statAvgSize").innerText = sizes.length ? formatNumber((sizes.reduce((a, b) => a + b, 0) / sizes.length)) : "—";
     let gp = all.filter(g => g.price != null);
     if (gp.length) {
         let most = gp.reduce((m, g) => g.price > m.price ? g : m, gp[0]);
-        document.getElementById("statMostExpensive").innerText = most.price;
+        document.getElementById("statMostExpensive").innerText = formatNumber(most.price);
         document.getElementById("statMostExpensiveGame").innerText = most.name;
     } else {
         document.getElementById("statMostExpensive").innerText = "—";
@@ -218,7 +229,7 @@ function updateStats() {
     let gr = all.filter(g => g.avgScore > 0);
     if (gr.length) {
         let hr = gr.reduce((m, g) => g.avgScore > m.avgScore ? g : m, gr[0]);
-        document.getElementById("statHighestRated").innerText = hr.avgScore.toFixed(1);
+        document.getElementById("statHighestRated").innerText = formatNumber(hr.avgScore);
         document.getElementById("statHighestRatedGame").innerText = hr.name;
     } else {
         document.getElementById("statHighestRated").innerText = "—";
@@ -228,9 +239,9 @@ function updateStats() {
     if (gs.length) {
         let large = gs.reduce((m, g) => g.size > m.size ? g : m, gs[0]),
             small = gs.reduce((m, g) => g.size < m.size ? g : m, gs[0]);
-        document.getElementById("statLargestSize").innerText = large.size.toFixed(1);
+        document.getElementById("statLargestSize").innerText = formatNumber(large.size);
         document.getElementById("statLargestSizeGame").innerText = large.name;
-        document.getElementById("statSmallestSize").innerText = small.size.toFixed(1);
+        document.getElementById("statSmallestSize").innerText = formatNumber(small.size);
         document.getElementById("statSmallestSizeGame").innerText = small.name;
     } else {
         document.getElementById("statLargestSize").innerText = "—";
@@ -242,9 +253,9 @@ function updateStats() {
     if (gh.length) {
         let long = gh.reduce((m, g) => g.hours > m.hours ? g : m, gh[0]),
             short = gh.reduce((m, g) => g.hours < m.hours ? g : m, gh[0]);
-        document.getElementById("statLongest").innerText = long.hours.toFixed(1);
+        document.getElementById("statLongest").innerText = formatNumber(long.hours);
         document.getElementById("statLongestGame").innerText = long.name;
-        document.getElementById("statShortest").innerText = short.hours.toFixed(1);
+        document.getElementById("statShortest").innerText = formatNumber(short.hours);
         document.getElementById("statShortestGame").innerText = short.name;
     } else {
         document.getElementById("statLongest").innerText = "—";
@@ -254,7 +265,7 @@ function updateStats() {
     }
     updateRadarChart();
     let maxC = Math.max(...TIER_RULES.map(t => tierlistData[t.id].length), 1);
-    document.getElementById("tierChart").innerHTML = TIER_RULES.map(tier => `<div class="bar-item"><div class="bar" style="height: ${tierlistData[tier.id].length/maxC*150}px; background: linear-gradient(180deg, ${tier.id==='S'?'#eab308':tier.id==='A'?'#10b981':tier.id==='B'?'#3b82f6':tier.id==='C'?'#f97316':tier.id==='D'?'#ef4444':'#94a3b8'}, #cbd5e1);"></div><div class="bar-label">Тир ${tier.label}</div><div class="bar-count">${tierlistData[tier.id].length} шт.</div></div>`).join('');
+    document.getElementById("tierChart").innerHTML = TIER_RULES.map(tier => `<div class="bar-item"><div class="bar" style="height: ${tierlistData[tier.id].length/maxC*150}px; background: linear-gradient(180deg, ${tier.id==='S'?'#eab308':tier.id==='A'?'#10b981':tier.id==='B'?'#3b82f6':tier.id==='C'?'#f97316':tier.id==='D'?'#ef4444':'#94a3b8'}, #cbd5e1);"></div><div class="bar-label">Тир ${tier.label}</div><div class="bar-count">${formatNumber(tierlistData[tier.id].length)} шт.</div></div>`).join('');
 }
 let currentDetail = null;
 
@@ -273,7 +284,7 @@ function openDetail(game, tierId, idx) {
     let scoresDiv = document.getElementById("detailScores");
     scoresDiv.innerHTML = `<div class="score-row"><strong>Средний балл</strong><strong>${game.avgScore}</strong></div>` + QUESTIONS.map(q => `<div class="score-row"><span>${q.full}</span><span>${game.enabled && game.enabled[q.short]===false?'❌ отключено':(game.scores[q.short]||0).toFixed(1)+'/10'}</span></div>`).join('');
     let extrasDiv = document.getElementById("detailExtras");
-    extrasDiv.innerHTML = `<div><span><i class="far fa-clock"></i> <strong>Время:</strong></span><span>${game.hours!==null?game.hours+' ч':'❓ не указано'}</span></div><div><span><i class="fas fa-coins"></i> <strong>Стоимость:</strong></span><span>${game.price!==null?(game.price===0?'Бесплатно':game.price+' ₽'):'❓ не указано'}</span></div><div><span><i class="fas fa-hdd"></i> <strong>Вес:</strong></span><span>${game.size!==null?game.size+' ГБ':'❓ не указано'}</span></div>`;
+    extrasDiv.innerHTML = `<div><span><i class="far fa-clock"></i> <strong>Время:</strong></span><span>${game.hours!==null?formatNumber(game.hours)+' ч':'❓ не указано'}</span></div><div><span><i class="fas fa-coins"></i> <strong>Стоимость:</strong></span><span>${game.price!==null?(game.price===0?'Бесплатно':formatNumber(game.price)+' ₽'):'Бесплатно'}</span></div><div><span><i class="fas fa-hdd"></i> <strong>Вес:</strong></span><span>${game.size!==null?formatNumber(game.size)+' ГБ':'❓ не указано'}</span></div>`;
     let tabs = document.querySelectorAll('.detail-tab'),
         scoresCont = document.getElementById('detailScoresTab'),
         statsCont = document.getElementById('detailStatsTab');
