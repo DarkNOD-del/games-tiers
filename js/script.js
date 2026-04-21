@@ -23,32 +23,32 @@ const QUESTIONS = [{
 
 const TIER_RULES = [{
     id: "S",
-    label: "S",
+    label: "Шедевры",
     min: 9.5,
     max: 10.0
 }, {
     id: "A",
-    label: "A",
+    label: "Отличные игры",
     min: 8.5,
     max: 9.5
 }, {
     id: "B",
-    label: "B",
+    label: "Хорошие игры",
     min: 7.0,
     max: 8.5
 }, {
     id: "C",
-    label: "C",
+    label: "Средние игры",
     min: 5.5,
     max: 7.0
 }, {
     id: "D",
-    label: "D",
+    label: "Плохие игры",
     min: 3.0,
     max: 5.5
 }, {
     id: "F",
-    label: "F",
+    label: "Полный провал",
     min: 0.0,
     max: 3.0
 }];
@@ -265,7 +265,7 @@ function updateStats() {
     }
     updateRadarChart();
     let maxC = Math.max(...TIER_RULES.map(t => tierlistData[t.id].length), 1);
-    document.getElementById("tierChart").innerHTML = TIER_RULES.map(tier => `<div class="bar-item"><div class="bar" style="height: ${tierlistData[tier.id].length/maxC*150}px; background: linear-gradient(180deg, ${tier.id==='S'?'#eab308':tier.id==='A'?'#10b981':tier.id==='B'?'#3b82f6':tier.id==='C'?'#f97316':tier.id==='D'?'#ef4444':'#94a3b8'}, #cbd5e1);"></div><div class="bar-label">Тир ${tier.label}</div><div class="bar-count">${formatNumber(tierlistData[tier.id].length)} шт.</div></div>`).join('');
+    document.getElementById("tierChart").innerHTML = TIER_RULES.map(tier => `<div class="bar-item"><div class="bar" style="height: ${tierlistData[tier.id].length/maxC*150}px; background: linear-gradient(180deg, ${tier.id==='S'?'#eab308':tier.id==='A'?'#10b981':tier.id==='B'?'#3b82f6':tier.id==='C'?'#f97316':tier.id==='D'?'#ef4444':'#94a3b8'}, #cbd5e1);"></div><div class="bar-label">${tier.label}</div><div class="bar-count">${formatNumber(tierlistData[tier.id].length)} шт.</div></div>`).join('');
 }
 let currentDetail = null;
 
