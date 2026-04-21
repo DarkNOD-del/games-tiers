@@ -111,9 +111,9 @@ function getTierId(avg) {
 
 function escapeHtml(s) {
     return s?.replace(/[&<>]/g, m => ({
-        '&': '&',
-        '<': '<',
-        '>': '>'
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;'
     } [m])) || "";
 }
 
@@ -130,7 +130,7 @@ function renderTiers() {
         games.forEach((game, idx) => {
             let card = document.createElement("div");
             card.className = "game-card";
-            card.innerHTML = `<div class="game-cover">${game.coverUrl?`<img src="${game.coverUrl}">`:'<div class="no-cover"><i class="fas fa-image" style="font-size:2rem; color:#cbd5e1;"></i></div>'}</div><div class="game-score-badge"><i class="fas fa-star"></i> ${game.avgScore}</div><div class="game-info"><div class="game-title">${escapeHtml(game.name)}</div></div>`;
+            card.innerHTML = `<div class="game-cover">${game.coverUrl?`<img src="${game.coverUrl}">`:'<div class="no-cover"><i class="fas fa-image" style="font-size:2rem; color:#cbd5e1;"></i></div>'}</div><div class="game-score-badge"><i class="fas fa-star"></i> ${game.avgScore}</div>${game.isDlc ? '<div class="game-dlc-badge"><i class="fas fa-box-open"></i> DLC</div>' : ''}<div class="game-info"><div class="game-title">${escapeHtml(game.name)}</div></div>`;
             card.onclick = () => openDetail(game, tier.id, idx);
             gDiv.appendChild(card);
         });
@@ -278,7 +278,7 @@ function openDetail(game, tierId, idx) {
             ...game
         }
     };
-    document.getElementById("detailTitle").innerHTML = `<i class="fas fa-gamepad"></i> ${escapeHtml(game.name)}`;
+    document.getElementById("detailTitle").innerHTML = `<i class="fas fa-gamepad"></i> ${escapeHtml(game.name)} ${game.isDlc ? '<span class="detail-dlc-badge"><i class="fas fa-box-open"></i> DLC</span>' : ''}`;
     let coverDiv = document.getElementById("detailCover");
     coverDiv.innerHTML = game.coverUrl ? `<img src="${game.coverUrl}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="fas fa-image" style="font-size:2rem; color:#cbd5e1;"></i></div>';
     let scoresDiv = document.getElementById("detailScores");
@@ -324,16 +324,22 @@ function openEditModal(gameData = null) {
     window.tempGame = {
         coverUrl: editingMode ? gameData.game.coverUrl : null,
         name: editingMode ? gameData.game.name : "",
-        scores: editingMode ? {
-            ...gameData.game.scores
-        } : Object.fromEntries(QUESTIONS.map(q => [q.short, 5])),
-        enabled: editingMode ? {
-            ...(gameData.game.enabled || {})
-        } : Object.fromEntries(QUESTIONS.map(q => [q.short, true])),
+        scores: editingMode ? { ...gameData.game.scores } : Object.fromEntries(QUESTIONS.map(q => [q.short, 5])),
+        enabled: editingMode ? { ...(gameData.game.enabled || {}) } : Object.fromEntries(QUESTIONS.map(q => [q.short, true])),
         hours: editingMode ? gameData.game.hours : null,
         price: editingMode ? gameData.game.price : null,
-        size: editingMode ? gameData.game.size : null
+        size: editingMode ? gameData.game.size : null,
+        isDlc: editingMode ? (gameData.game.isDlc || false) : false
     };
+    
+    let dlcCheckbox = document.getElementById("isDlcCheckbox");
+    if (dlcCheckbox) {
+        dlcCheckbox.checked = window.tempGame.isDlc;
+        dlcCheckbox.onchange = (e) => {
+            if (window.tempGame) window.tempGame.isDlc = e.target.checked;
+        };
+    }
+    
     let c = document.getElementById("questionsList");
     c.innerHTML = QUESTIONS.map(q => `<div class="toggle-wrapper"><label class="toggle-switch"><input type="checkbox" class="rating-toggle" data-short="${q.short}" ${(window.tempGame.enabled&&window.tempGame.enabled[q.short]!==false)?'checked':''}><span class="slider"></span></label><span>${q.full}</span></div><div class="question-item ${(window.tempGame.enabled&&window.tempGame.enabled[q.short]===false)?'disabled-rating':''}"><div class="question-label"><span></span><span class="score-value" id="val_${q.short}">${(window.tempGame.scores[q.short]||5).toFixed(1)}/10</span></div><input type="range" min="0" max="10" step="0.1" value="${window.tempGame.scores[q.short]||5}" data-short="${q.short}" class="q-slider" ${(window.tempGame.enabled&&window.tempGame.enabled[q.short]===false)?'disabled':''}></div>`).join('');
     document.querySelectorAll('.rating-toggle').forEach(t => {
@@ -372,6 +378,9 @@ function saveGame() {
         showToast("Введите название", "error");
         return;
     }
+    
+    let isDlc = document.getElementById("isDlcCheckbox")?.checked || false;
+    window.tempGame.isDlc = isDlc;
     window.tempGame.name = name;
     window.tempGame.avgScore = computeAverage(window.tempGame.scores, window.tempGame.enabled);
     let hours = document.getElementById("gameHours").value,
@@ -380,15 +389,10 @@ function saveGame() {
     window.tempGame.hours = hours ? parseFloat(hours) : null;
     window.tempGame.price = (price !== "") ? parseInt(price) : null;
     window.tempGame.size = size ? parseFloat(size) : null;
+    
     if (editingMode && editingTarget) {
-        let {
-            tierId,
-            idx,
-            game
-        } = editingTarget;
-        tierlistData[tierId][idx] = {
-            ...window.tempGame
-        };
+        let { tierId, idx, game } = editingTarget;
+        tierlistData[tierId][idx] = { ...window.tempGame };
         tierlistData[tierId][idx].avgScore = computeAverage(window.tempGame.scores, window.tempGame.enabled);
         let newTier = getTierId(tierlistData[tierId][idx].avgScore);
         if (newTier !== tierId) {
@@ -397,9 +401,7 @@ function saveGame() {
             showToast(`"${name}" перемещена в ${newTier}`, "success");
         } else showToast(`"${name}" обновлена`, "success");
     } else {
-        let newGame = {
-            ...window.tempGame
-        };
+        let newGame = { ...window.tempGame };
         newGame.avgScore = computeAverage(newGame.scores, newGame.enabled);
         let tier = getTierId(newGame.avgScore);
         tierlistData[tier].push(newGame);
@@ -413,11 +415,7 @@ function saveGame() {
 
 function deleteCurrentGame() {
     if (currentDetail) {
-        let {
-            tierId,
-            idx,
-            game
-        } = currentDetail;
+        let { tierId, idx, game } = currentDetail;
         tierlistData[tierId].splice(idx, 1);
         sortTiers();
         renderTiers();
@@ -474,13 +472,10 @@ function setupDropzone() {
         }
     };
 }
+
 document.getElementById("saveDataBtn").onclick = () => {
     let a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([JSON.stringify({
-        tiers: tierlistData
-    }, null, 4)], {
-        type: "application/json"
-    }));
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({ tiers: tierlistData }, null, 4)], { type: "application/json" }));
     a.download = `tierlist_${Date.now()}.json`;
     a.click();
     showToast("Сохранено", "success");
