@@ -938,6 +938,11 @@ input[type="range"]::-webkit-slider-thumb {
     margin: var(--spacing-lg) 0;
 }
 
+.difficulty-row {
+    display: flex;
+    justify-content: space-between;
+}
+
 .modal-buttons {
     display: flex;
     justify-content: flex-end;
