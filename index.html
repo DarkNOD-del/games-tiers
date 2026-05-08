@@ -76,10 +76,10 @@
                         </div>
                         <div class="stat-card">
                             <h3>
-                                <i class="fas fa-hdd"></i> Средний вес
+                                <i class="fas fa-chart-line"></i> Средняя сложность
                             </h3>
-                            <div class="stat-value" id="statAvgSize">—</div>
-                            <div class="stat-unit">ГБ</div>
+                            <div class="stat-value" id="statAvgDifficulty">—</div>
+                            <div class="stat-unit">/10</div>
                         </div>
                     </div>
                 </div>
@@ -174,7 +174,8 @@
                         <label class="custom-checkbox">
                             <input type="checkbox" id="isDlcCheckbox">
                             <span class="checkbox-style"></span>
-                            <span class="checkbox-label"><i class="fas fa-box-open"></i> Является DLC</span>
+                            <span class="checkbox-label">
+                                <i class="fas fa-box-open"></i> Является DLC </span>
                         </label>
                     </div>
                     <div class="modal-buttons">
@@ -210,6 +211,14 @@
                         <label>
                             <i class="fas fa-database"></i> Вес </label>
                         <input type="number" id="gameSize" step="1" placeholder="ГБ">
+                    </div>
+                    <div class="stat-row">
+                        <div class="difficulty-row">
+                            <label>
+                                <i class="fas fa-chart-line"></i> Сложность </label>
+                            <span id="difficultyValue" style="margin-left: 10px; font-size: 14px; color: #475569;">5.0/10</span>
+                        </div>
+                        <input type="range" id="gameDifficulty" min="-0.5" max="10" step="0.5" value="5">
                     </div>
                     <div class="modal-buttons">
                         <button id="backToStep2Btn">Назад</button>
