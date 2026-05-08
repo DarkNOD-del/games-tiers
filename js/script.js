@@ -66,7 +66,7 @@ let editingMode = false,
 
 function formatNumber(num) {
     if (num === null || num === undefined || isNaN(num)) return "—";
-    
+
     let formatted = Number(num).toLocaleString('ru-RU', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2
@@ -215,8 +215,10 @@ function updateStats() {
     let prices = all.filter(g => g.price != null).map(g => g.price);
     document.getElementById("statAvgPrice").innerText = prices.length ? formatNumber(prices.reduce((a, b) => a + b, 0) / prices.length) : "—";
     document.getElementById("statTotalPrice").innerText = prices.length ? formatNumber(prices.reduce((a, b) => a + b, 0)) : "—";
+    let difficulties = all.filter(g => g.difficulty >= 0).map(g => g.difficulty);
+    document.getElementById("statAvgDifficulty").innerText = difficulties.length ? formatNumber((difficulties.reduce((a, b) => a + b, 0) / difficulties.length)) : "—";
+
     let sizes = all.filter(g => g.size != null).map(g => g.size);
-    document.getElementById("statAvgSize").innerText = sizes.length ? formatNumber((sizes.reduce((a, b) => a + b, 0) / sizes.length)) : "—";
     let gp = all.filter(g => g.price != null);
     if (gp.length) {
         let most = gp.reduce((m, g) => g.price > m.price ? g : m, gp[0]);
@@ -284,7 +286,7 @@ function openDetail(game, tierId, idx) {
     let scoresDiv = document.getElementById("detailScores");
     scoresDiv.innerHTML = `<div class="score-row"><strong>Средний балл</strong><strong>${game.avgScore}</strong></div>` + QUESTIONS.map(q => `<div class="score-row"><span>${q.full}</span><span>${game.enabled && game.enabled[q.short]===false?'❌ отключено':(game.scores[q.short]||0).toFixed(1)+'/10'}</span></div>`).join('');
     let extrasDiv = document.getElementById("detailExtras");
-    extrasDiv.innerHTML = `<div><span><i class="far fa-clock"></i> <strong>Время:</strong></span><span>${game.hours!==null?formatNumber(game.hours)+' ч':'❓ не указано'}</span></div><div><span><i class="fas fa-coins"></i> <strong>Стоимость:</strong></span><span>${game.price!==null?(game.price===0?'Бесплатно':formatNumber(game.price)+' ₽'):'Бесплатно'}</span></div><div><span><i class="fas fa-hdd"></i> <strong>Вес:</strong></span><span>${game.size!==null?formatNumber(game.size)+' ГБ':'❓ не указано'}</span></div>`;
+    extrasDiv.innerHTML = `<div><span><i class="far fa-clock"></i> <strong>Время:</strong></span><span>${game.hours!==null?formatNumber(game.hours)+' ч':'❓ не указано'}</span></div><div><span><i class="fas fa-coins"></i> <strong>Стоимость:</strong></span><span>${game.price!==null?(game.price===0?'Бесплатно':formatNumber(game.price)+' ₽'):'Бесплатно'}</span></div><div><span><i class="fas fa-database"></i> <strong>Вес:</strong></span><span>${game.size!==null?formatNumber(game.size)+' ГБ':'❓ не указано'}</span></div><div><span><i class="fas fa-chart-line"></i> <strong>Сложность:</strong></span><span>${game.difficulty>=0?formatNumber(game.difficulty)+'/10':'❓ не указано'}</span></div>`;
     let tabs = document.querySelectorAll('.detail-tab'),
         scoresCont = document.getElementById('detailScoresTab'),
         statsCont = document.getElementById('detailStatsTab');
@@ -321,17 +323,35 @@ function openEditModal(gameData = null) {
     document.getElementById("gameHours").value = (editingMode && gameData.game.hours !== null) ? gameData.game.hours : "";
     document.getElementById("gamePrice").value = (editingMode && gameData.game.price !== null) ? gameData.game.price : "";
     document.getElementById("gameSize").value = (editingMode && gameData.game.size !== null) ? gameData.game.size : "";
+
+    let difficultySlider = document.getElementById("gameDifficulty");
+    let difficultyValue = document.getElementById("difficultyValue");
+    let initialDifficulty = (editingMode && gameData.game.difficulty !== null) ? gameData.game.difficulty : 5;
+    difficultySlider.value = initialDifficulty;
+    difficultyValue.innerText = initialDifficulty >= 0 ? initialDifficulty.toFixed(1) + "/10" : "❓ не указано";
+
+    difficultySlider.oninput = function() {
+        let val = parseFloat(parseFloat(this.value).toFixed(1));
+        difficultyValue.innerText = val >= 0 ? val.toFixed(1) + "/10" : "❓ не указано";
+        if (window.tempGame) window.tempGame.difficulty = val;
+    };
+
     window.tempGame = {
         coverUrl: editingMode ? gameData.game.coverUrl : null,
         name: editingMode ? gameData.game.name : "",
-        scores: editingMode ? { ...gameData.game.scores } : Object.fromEntries(QUESTIONS.map(q => [q.short, 5])),
-        enabled: editingMode ? { ...(gameData.game.enabled || {}) } : Object.fromEntries(QUESTIONS.map(q => [q.short, true])),
+        scores: editingMode ? {
+            ...gameData.game.scores
+        } : Object.fromEntries(QUESTIONS.map(q => [q.short, 5])),
+        enabled: editingMode ? {
+            ...(gameData.game.enabled || {})
+        } : Object.fromEntries(QUESTIONS.map(q => [q.short, true])),
         hours: editingMode ? gameData.game.hours : null,
         price: editingMode ? gameData.game.price : null,
         size: editingMode ? gameData.game.size : null,
+        difficulty: editingMode ? (gameData.game.difficulty !== null ? gameData.game.difficulty : 5) : 5,
         isDlc: editingMode ? (gameData.game.isDlc || false) : false
     };
-    
+
     let dlcCheckbox = document.getElementById("isDlcCheckbox");
     if (dlcCheckbox) {
         dlcCheckbox.checked = window.tempGame.isDlc;
@@ -339,7 +359,7 @@ function openEditModal(gameData = null) {
             if (window.tempGame) window.tempGame.isDlc = e.target.checked;
         };
     }
-    
+
     let c = document.getElementById("questionsList");
     c.innerHTML = QUESTIONS.map(q => `<div class="toggle-wrapper"><label class="toggle-switch"><input type="checkbox" class="rating-toggle" data-short="${q.short}" ${(window.tempGame.enabled&&window.tempGame.enabled[q.short]!==false)?'checked':''}><span class="slider"></span></label><span>${q.full}</span></div><div class="question-item ${(window.tempGame.enabled&&window.tempGame.enabled[q.short]===false)?'disabled-rating':''}"><div class="question-label"><span></span><span class="score-value" id="val_${q.short}">${(window.tempGame.scores[q.short]||5).toFixed(1)}/10</span></div><input type="range" min="0" max="10" step="0.1" value="${window.tempGame.scores[q.short]||5}" data-short="${q.short}" class="q-slider" ${(window.tempGame.enabled&&window.tempGame.enabled[q.short]===false)?'disabled':''}></div>`).join('');
     document.querySelectorAll('.rating-toggle').forEach(t => {
@@ -378,21 +398,29 @@ function saveGame() {
         showToast("Введите название", "error");
         return;
     }
-    
+
     let isDlc = document.getElementById("isDlcCheckbox")?.checked || false;
     window.tempGame.isDlc = isDlc;
     window.tempGame.name = name;
     window.tempGame.avgScore = computeAverage(window.tempGame.scores, window.tempGame.enabled);
     let hours = document.getElementById("gameHours").value,
         price = document.getElementById("gamePrice").value,
-        size = document.getElementById("gameSize").value;
+        size = document.getElementById("gameSize").value,
+        difficulty = document.getElementById("gameDifficulty").value;
     window.tempGame.hours = hours ? parseFloat(hours) : null;
     window.tempGame.price = (price !== "") ? parseInt(price) : null;
     window.tempGame.size = size ? parseFloat(size) : null;
-    
+    window.tempGame.difficulty = difficulty ? parseFloat(difficulty) : 0;
+
     if (editingMode && editingTarget) {
-        let { tierId, idx, game } = editingTarget;
-        tierlistData[tierId][idx] = { ...window.tempGame };
+        let {
+            tierId,
+            idx,
+            game
+        } = editingTarget;
+        tierlistData[tierId][idx] = {
+            ...window.tempGame
+        };
         tierlistData[tierId][idx].avgScore = computeAverage(window.tempGame.scores, window.tempGame.enabled);
         let newTier = getTierId(tierlistData[tierId][idx].avgScore);
         if (newTier !== tierId) {
@@ -401,7 +429,9 @@ function saveGame() {
             showToast(`"${name}" перемещена в ${newTier}`, "success");
         } else showToast(`"${name}" обновлена`, "success");
     } else {
-        let newGame = { ...window.tempGame };
+        let newGame = {
+            ...window.tempGame
+        };
         newGame.avgScore = computeAverage(newGame.scores, newGame.enabled);
         let tier = getTierId(newGame.avgScore);
         tierlistData[tier].push(newGame);
@@ -415,7 +445,11 @@ function saveGame() {
 
 function deleteCurrentGame() {
     if (currentDetail) {
-        let { tierId, idx, game } = currentDetail;
+        let {
+            tierId,
+            idx,
+            game
+        } = currentDetail;
         tierlistData[tierId].splice(idx, 1);
         sortTiers();
         renderTiers();
@@ -475,7 +509,11 @@ function setupDropzone() {
 
 document.getElementById("saveDataBtn").onclick = () => {
     let a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([JSON.stringify({ tiers: tierlistData }, null, 4)], { type: "application/json" }));
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({
+        tiers: tierlistData
+    }, null, 4)], {
+        type: "application/json"
+    }));
     a.download = `tierlist_${Date.now()}.json`;
     a.click();
     showToast("Сохранено", "success");
