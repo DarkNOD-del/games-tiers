@@ -152,6 +152,12 @@
                     </h3>
                     <div id="tierChart" class="bar-chart"></div>
                 </div>
+                <div class="chart-container">
+                    <h3>
+                        <i class="fas fa-trophy"></i> Путь достижений
+                    </h3>
+                    <div id="achievementsChart" class="achievements-path"></div>
+                </div>
             </div>
         </div>
         <div id="toastContainer" class="toast-container"></div>
@@ -219,6 +225,14 @@
                             <span id="difficultyValue" style="margin-left: 10px; font-size: 14px; color: #475569;">5.0/10</span>
                         </div>
                         <input type="range" id="gameDifficulty" min="-0.5" max="10" step="0.5" value="5">
+                    </div>
+                    <div class="stat-row">
+                        <div class="difficulty-row">
+                            <label>
+                                <i class="fas fa-trophy"></i> Адекватность достижений </label>
+                            <span id="achievementsValue" style="margin-left: 10px; font-size: 14px; color: #475569;">⚖️ Золотая середина</span>
+                        </div>
+                        <input type="range" id="gameAchievements">
                     </div>
                     <div class="modal-buttons">
                         <button id="backToStep2Btn">Назад</button>

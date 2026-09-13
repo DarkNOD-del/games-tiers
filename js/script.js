@@ -52,6 +52,48 @@ const TIER_RULES = [{
     min: 0.0,
     max: 3.0
 }];
+
+/* 5 дискретных позиций слайдера достижений.
+   Поле color используется только в блоке "Путь достижений" на вкладке статистики. */
+const ACHIEVEMENT_LEVELS = [
+    { value: -0.5, emoji: "❓",  name: "Не указано",       color: "#94a3b8" },
+    { value: 2.0,  emoji: "🌤️", name: "Лёгкая прогулка",  color: "#84cc16" },
+    { value: 4.5,  emoji: "⚖️", name: "Золотая середина", color: "#eab308" },
+    { value: 7.0,  emoji: "🔥",  name: "Крепкий орешек",   color: "#f97316" },
+    { value: 9.5,  emoji: "💀",  name: "Безумие",          color: "#ef4444" }
+];
+
+function getAchievementInfo(val) {
+    if (val === null || val === undefined) return ACHIEVEMENT_LEVELS[0];
+    let closest = ACHIEVEMENT_LEVELS[0];
+    let minDiff = Math.abs(val - closest.value);
+    for (let lvl of ACHIEVEMENT_LEVELS) {
+        let diff = Math.abs(val - lvl.value);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closest = lvl;
+        }
+    }
+    return closest;
+}
+
+/* Настраивает диапазон слайдера достижений исходя из ACHIEVEMENT_LEVELS. */
+function configureAchievementsSlider(slider) {
+    const first = ACHIEVEMENT_LEVELS[0].value;
+    const last = ACHIEVEMENT_LEVELS[ACHIEVEMENT_LEVELS.length - 1].value;
+    slider.min = first;
+    slider.max = last;
+    slider.step = (last - first) / (ACHIEVEMENT_LEVELS.length - 1);
+}
+
+/* Меняет только текст — цвет и жирность задаются инлайн-стилем в HTML,
+   ровно как у #difficultyValue. */
+function updateAchievementsLabel(el, val) {
+    if (!el) return;
+    let info = getAchievementInfo(val);
+    el.innerText = `${info.emoji} ${info.name}`;
+}
+
 let tierlistData = {
     S: [],
     A: [],
@@ -66,12 +108,10 @@ let editingMode = false,
 
 function formatNumber(num) {
     if (num === null || num === undefined || isNaN(num)) return "—";
-
     let formatted = Number(num).toLocaleString('ru-RU', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2
     });
-
     return formatted.replace(',', '.');
 }
 
@@ -204,6 +244,40 @@ function updateRadarChart() {
     });
 }
 
+/* === Новый блок статистики: "Путь достижений" === */
+function updateAchievementsChart() {
+    const container = document.getElementById("achievementsChart");
+    if (!container) return;
+
+    let all = [];
+    for (let t of TIER_RULES) all.push(...tierlistData[t.id]);
+
+    let counts = ACHIEVEMENT_LEVELS.map(() => 0);
+    for (let g of all) {
+        let lvl = getAchievementInfo(g.achievements);
+        let idx = ACHIEVEMENT_LEVELS.indexOf(lvl);
+        if (idx >= 0) counts[idx]++;
+    }
+
+    container.innerHTML = ACHIEVEMENT_LEVELS.map((lvl, i) => {
+        let count = counts[i];
+        let isEmpty = count === 0;
+        let countStyle = !isEmpty
+            ? `background:${lvl.color};border-color:${lvl.color};color:#fff;box-shadow:0 3px 10px ${lvl.color}55;`
+            : '';
+        let emojiStyle = !isEmpty
+            ? `border-color:${lvl.color};box-shadow:0 6px 18px ${lvl.color}66;`
+            : '';
+        return `
+            <div class="achievement-node ${isEmpty?'empty':'active'}" title="${lvl.name}">
+                <div class="node-count" style="${countStyle}">${count}</div>
+                <div class="node-emoji" style="${emojiStyle}">${lvl.emoji}</div>
+                <div class="node-name">${lvl.name}</div>
+            </div>
+        `;
+    }).join('');
+}
+
 function updateStats() {
     let all = [];
     for (let t of TIER_RULES) all.push(...tierlistData[t.id]);
@@ -218,7 +292,6 @@ function updateStats() {
     let difficulties = all.filter(g => g.difficulty >= 0).map(g => g.difficulty);
     document.getElementById("statAvgDifficulty").innerText = difficulties.length ? formatNumber((difficulties.reduce((a, b) => a + b, 0) / difficulties.length)) : "—";
 
-    let sizes = all.filter(g => g.size != null).map(g => g.size);
     let gp = all.filter(g => g.price != null);
     if (gp.length) {
         let most = gp.reduce((m, g) => g.price > m.price ? g : m, gp[0]);
@@ -266,9 +339,11 @@ function updateStats() {
         document.getElementById("statShortestGame").innerText = "Нет данных";
     }
     updateRadarChart();
+    updateAchievementsChart();
     let maxC = Math.max(...TIER_RULES.map(t => tierlistData[t.id].length), 1);
-    document.getElementById("tierChart").innerHTML = TIER_RULES.map(tier => `<div class="bar-item"><div class="bar" style="height: ${tierlistData[tier.id].length/maxC*150}px; background: linear-gradient(180deg, ${tier.id==='S'?'#eab308':tier.id==='A'?'#10b981':tier.id==='B'?'#3b82f6':tier.id==='C'?'#f97316':tier.id==='D'?'#ef4444':'#94a3b8'}, #cbd5e1);"></div><div class="bar-label">${tier.label}</div><div class="bar-count">${formatNumber(tierlistData[tier.id].length)} шт.</div></div>`).join('');
+    document.getElementById("tierChart").innerHTML = [...TIER_RULES].reverse().map(tier => `<div class="bar-item"><div class="bar" style="height: ${tierlistData[tier.id].length/maxC*150}px; background: linear-gradient(180deg, ${tier.id==='S'?'#eab308':tier.id==='A'?'#10b981':tier.id==='B'?'#3b82f6':tier.id==='C'?'#f97316':tier.id==='D'?'#ef4444':'#94a3b8'}, #cbd5e1);"></div><div class="bar-label">${tier.label}</div><div class="bar-count">${formatNumber(tierlistData[tier.id].length)} шт.</div></div>`).join('');
 }
+
 let currentDetail = null;
 
 function openDetail(game, tierId, idx) {
@@ -285,8 +360,22 @@ function openDetail(game, tierId, idx) {
     coverDiv.innerHTML = game.coverUrl ? `<img src="${game.coverUrl}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><i class="fas fa-image" style="font-size:2rem; color:#cbd5e1;"></i></div>';
     let scoresDiv = document.getElementById("detailScores");
     scoresDiv.innerHTML = `<div class="score-row"><strong>Средний балл</strong><strong>${game.avgScore}</strong></div>` + QUESTIONS.map(q => `<div class="score-row"><span>${q.full}</span><span>${game.enabled && game.enabled[q.short]===false?'❌ отключено':(game.scores[q.short]||0).toFixed(1)+'/10'}</span></div>`).join('');
+
+    let achInfo = getAchievementInfo(game.achievements);
+    let achKnown = (game.achievements !== undefined && game.achievements !== null && game.achievements >= 0);
+    let achDisplay = achKnown
+        ? `${achInfo.emoji} ${achInfo.name}`
+        : `${achInfo.emoji} не указано`;
+
     let extrasDiv = document.getElementById("detailExtras");
-    extrasDiv.innerHTML = `<div><span><i class="far fa-clock"></i> <strong>Время:</strong></span><span>${game.hours!==null?formatNumber(game.hours)+' ч':'❓ не указано'}</span></div><div><span><i class="fas fa-coins"></i> <strong>Стоимость:</strong></span><span>${game.price!==null?(game.price===0?'Бесплатно':formatNumber(game.price)+' ₽'):'Бесплатно'}</span></div><div><span><i class="fas fa-database"></i> <strong>Вес:</strong></span><span>${game.size!==null?formatNumber(game.size)+' ГБ':'❓ не указано'}</span></div><div><span><i class="fas fa-chart-line"></i> <strong>Сложность:</strong></span><span>${game.difficulty>=0?formatNumber(game.difficulty)+'/10':'❓ не указано'}</span></div>`;
+    extrasDiv.innerHTML = `
+        <div><span><i class="far fa-clock"></i> <strong>Время:</strong></span><span>${game.hours!==null?formatNumber(game.hours)+' ч':'❓ не указано'}</span></div>
+        <div><span><i class="fas fa-coins"></i> <strong>Стоимость:</strong></span><span>${game.price!==null?(game.price===0?'Бесплатно':formatNumber(game.price)+' ₽'):'Бесплатно'}</span></div>
+        <div><span><i class="fas fa-database"></i> <strong>Вес:</strong></span><span>${game.size!==null?formatNumber(game.size)+' ГБ':'❓ не указано'}</span></div>
+        <div><span><i class="fas fa-chart-line"></i> <strong>Сложность:</strong></span><span>${game.difficulty>=0?formatNumber(game.difficulty)+'/10':'❓ не указано'}</span></div>
+        <div><span><i class="fas fa-trophy"></i> <strong>Достижения:</strong></span><span>${achDisplay}</span></div>
+    `;
+
     let tabs = document.querySelectorAll('.detail-tab'),
         scoresCont = document.getElementById('detailScoresTab'),
         statsCont = document.getElementById('detailStatsTab');
@@ -336,6 +425,26 @@ function openEditModal(gameData = null) {
         if (window.tempGame) window.tempGame.difficulty = val;
     };
 
+    let achievementsSlider = document.getElementById("gameAchievements");
+    let achievementsValue = document.getElementById("achievementsValue");
+
+    configureAchievementsSlider(achievementsSlider);
+
+    let initialAchievements;
+    if (editingMode && gameData.game.achievements !== undefined && gameData.game.achievements !== null) {
+        initialAchievements = getAchievementInfo(gameData.game.achievements).value;
+    } else {
+        initialAchievements = ACHIEVEMENT_LEVELS[2].value;
+    }
+    achievementsSlider.value = initialAchievements;
+    updateAchievementsLabel(achievementsValue, initialAchievements);
+
+    achievementsSlider.oninput = function() {
+        let val = parseFloat(this.value);
+        if (window.tempGame) window.tempGame.achievements = val;
+        updateAchievementsLabel(achievementsValue, val);
+    };
+
     window.tempGame = {
         coverUrl: editingMode ? gameData.game.coverUrl : null,
         name: editingMode ? gameData.game.name : "",
@@ -349,6 +458,7 @@ function openEditModal(gameData = null) {
         price: editingMode ? gameData.game.price : null,
         size: editingMode ? gameData.game.size : null,
         difficulty: editingMode ? (gameData.game.difficulty !== null ? gameData.game.difficulty : 5) : 5,
+        achievements: initialAchievements,
         isDlc: editingMode ? (gameData.game.isDlc || false) : false
     };
 
@@ -406,17 +516,18 @@ function saveGame() {
     let hours = document.getElementById("gameHours").value,
         price = document.getElementById("gamePrice").value,
         size = document.getElementById("gameSize").value,
-        difficulty = document.getElementById("gameDifficulty").value;
+        difficulty = document.getElementById("gameDifficulty").value,
+        achievements = document.getElementById("gameAchievements").value;
     window.tempGame.hours = hours ? parseFloat(hours) : null;
     window.tempGame.price = (price !== "") ? parseInt(price) : null;
     window.tempGame.size = size ? parseFloat(size) : null;
     window.tempGame.difficulty = difficulty ? parseFloat(difficulty) : 0;
+    window.tempGame.achievements = (achievements !== "" && achievements !== null) ? parseFloat(achievements) : ACHIEVEMENT_LEVELS[0].value;
 
     if (editingMode && editingTarget) {
         let {
             tierId,
-            idx,
-            game
+            idx
         } = editingTarget;
         tierlistData[tierId][idx] = {
             ...window.tempGame

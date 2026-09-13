@@ -21,7 +21,6 @@
     --text-secondary: #1e293b;
     --text-muted: #5b6e8c;
     --text-light: #475569;
-    --text-soft: #334155;
     --text-lighter: #64748b;
     --text-disabled: #94a3b8;
     --text-on-primary: white;
@@ -49,17 +48,7 @@
     --btn-danger-hover: #b91c1c;
 
     --gradient-text: linear-gradient(135deg, #3b82f6, #a855f7, #ec489a);
-    --gradient-bar-s: linear-gradient(180deg, #eab308, #cbd5e1);
-    --gradient-bar-a: linear-gradient(180deg, #10b981, #cbd5e1);
-    --gradient-bar-b: linear-gradient(180deg, #3b82f6, #cbd5e1);
-    --gradient-bar-c: linear-gradient(180deg, #f97316, #cbd5e1);
-    --gradient-bar-d: linear-gradient(180deg, #ef4444, #cbd5e1);
-    --gradient-bar-f: linear-gradient(180deg, #94a3b8, #cbd5e1);
     --gradient-bar-default: linear-gradient(180deg, #3b82f6, #93c5fd);
-
-    --chart-line: #3b82f6;
-    --chart-fill: rgba(59, 130, 246, 0.2);
-    --chart-grid: #e2e8f0;
 
     --spacing-xs: 0.2rem;
     --spacing-sm: 0.4rem;
@@ -88,7 +77,6 @@
     --shadow-2xl: 0 30px 40px -20px rgba(0, 0, 0, 0.25);
     --shadow-primary: 0 2px 6px rgba(59, 130, 246, 0.2);
 
-    --transition-fast: 0.1s;
     --transition-base: 0.2s;
     --font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
     --z-toast: 9999;
@@ -606,8 +594,7 @@ button:hover {
     display: inline-block;
 }
 
-.stat-sub:empty::before,
-.stat-sub:contains("—")::before {
+.stat-sub:empty::before {
     display: none;
 }
 
@@ -651,6 +638,95 @@ button:hover {
 .bar-count {
     font-size: 0.8rem;
     text-align: center;
+}
+
+/* ===== Путь достижений ===== */
+.achievements-path {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1.2rem 1rem 1rem;
+    position: relative;
+    min-height: 170px;
+    overflow-x: auto;
+}
+
+.achievements-path::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 92px;
+    height: 3px;
+    background: linear-gradient(90deg,
+        #94a3b8 0%,
+        #84cc16 25%,
+        #eab308 50%,
+        #f97316 75%,
+        #ef4444 100%);
+    opacity: 0.25;
+    border-radius: 3px;
+    z-index: 0;
+}
+
+.achievement-node {
+    position: relative;
+    flex: 1;
+    min-width: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    z-index: 1;
+    transition: transform 0.25s ease;
+    cursor: default;
+}
+
+.achievement-node .node-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 2px solid var(--border-light);
+    padding: 3px 10px;
+    border-radius: 20px;
+    min-width: 34px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s ease;
+}
+
+.achievement-node .node-emoji {
+    font-size: 1.7rem;
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-surface);
+    border-radius: 50%;
+    border: 3px solid var(--border-light);
+    box-shadow: var(--shadow-md);
+    transition: all 0.25s ease;
+}
+
+.achievement-node .node-name {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 100px;
+    line-height: 1.2;
+    min-height: 28px;
+}
+
+.achievement-node.empty {
+    opacity: 0.45;
+}
+
+.achievement-node.empty .node-emoji {
+    filter: grayscale(0.8);
 }
 
 .modal,
@@ -941,6 +1017,7 @@ input[type="range"]::-webkit-slider-thumb {
 .difficulty-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
 .modal-buttons {
