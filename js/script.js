@@ -75,7 +75,6 @@ function getAchievementInfo(val) {
     return closest;
 }
 
-/* Настраивает диапазон слайдера достижений исходя из ACHIEVEMENT_LEVELS. */
 function configureAchievementsSlider(slider) {
     const first = ACHIEVEMENT_LEVELS[0].value;
     const last = ACHIEVEMENT_LEVELS[ACHIEVEMENT_LEVELS.length - 1].value;
