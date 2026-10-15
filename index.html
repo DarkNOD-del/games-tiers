@@ -25,15 +25,18 @@
                         <i class="fas fa-folder-open"></i> Загрузить </button>
                 </div>
             </div>
+
             <div class="tabs">
                 <button class="tab-btn active" data-tab="tierlist">
                     <i class="fas fa-layer-group"></i> Тирлист </button>
                 <button class="tab-btn" data-tab="stats">
                     <i class="fas fa-bar-chart"></i> Статистика </button>
             </div>
+
             <div id="tab-tierlist" class="tab-content active">
                 <div id="tiersContainer" class="tiers-grid"></div>
             </div>
+
             <div id="tab-stats" class="tab-content">
                 <div class="stats-container">
                     <h3>
@@ -83,6 +86,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="stats-container">
                     <h3>
                         <i class="fa-brands fa-hackerrank"></i> Самые запоминающиеся
@@ -138,6 +142,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="chart-container">
                     <h3>
                         <i class="fas fa-chart-pie"></i> Средние оценки по параметрам
@@ -146,21 +151,34 @@
                         <canvas id="radarChartCanvas" width="400" height="400" style="width:100%; max-width: 400px; margin:0 auto; display:block;"></canvas>
                     </div>
                 </div>
+
                 <div class="chart-container">
                     <h3>
                         <i class="fas fa-bar-chart"></i> Распределение по тирам
                     </h3>
                     <div id="tierChart" class="bar-chart"></div>
                 </div>
+
                 <div class="chart-container">
                     <h3>
                         <i class="fas fa-trophy"></i> Путь достижений
                     </h3>
                     <div id="achievementsChart" class="achievements-path"></div>
                 </div>
+
+                <div class="chart-container value-chart-container">
+                    <h3>
+                        <i class="fas fa-coins"></i> Цена часа удовольствия
+                    </h3>
+                    <p class="chart-desc">Сколько рублей вы заплатили за каждый час игры. <strong>Меньше — выгоднее.</strong></p>
+                    <div id="valueChart" class="value-chart"></div>
+                </div>
             </div>
         </div>
+
+        <div id="tooltipBox" class="tooltip-box" role="tooltip" aria-hidden="true"></div>
         <div id="toastContainer" class="toast-container"></div>
+
         <div id="editModal" class="modal">
             <div class="modal-card">
                 <div id="step1">
@@ -232,7 +250,7 @@
                                 <i class="fas fa-trophy"></i> Адекватность достижений </label>
                             <span id="achievementsValue" style="margin-left: 10px; font-size: 14px; color: #475569;">⚖️ Золотая середина</span>
                         </div>
-                        <input type="range" id="gameAchievements" >
+                        <input type="range" id="gameAchievements">
                     </div>
                     <div class="modal-buttons">
                         <button id="backToStep2Btn">Назад</button>
@@ -241,6 +259,7 @@
                 </div>
             </div>
         </div>
+
         <div id="detailModal" class="detail-modal">
             <div class="modal-card">
                 <h3 class="modal-title" id="detailTitle"></h3>
@@ -268,8 +287,8 @@
                 </div>
             </div>
         </div>
+
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <script src="js/script.js"></script>
     </body>
-    
 </html>
