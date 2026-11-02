@@ -50,6 +50,9 @@
     --gradient-text: linear-gradient(135deg, #3b82f6, #a855f7, #ec489a);
     --gradient-bar-default: linear-gradient(180deg, #3b82f6, #93c5fd);
 
+    /* Общий сдвиг карточки при hover — используется и в .game-card, и в .swap-btn */
+    --card-hover-lift: 3px;
+
     --spacing-xs: 0.2rem;
     --spacing-sm: 0.4rem;
     --spacing-md: 0.6rem;
@@ -143,6 +146,12 @@ label i {
     border-left: 4px solid var(--btn-primary-bg);
     min-width: 240px;
     max-width: 340px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast.fade-out {
+    opacity: 0;
+    transform: translateX(-20px);
 }
 
 .toast.error {
@@ -378,21 +387,25 @@ button:hover {
     background: var(--bg-surface);
 }
 
+/* position: relative + top используется вместо transform: translateY(-3px),
+   чтобы не создавать stacking context и не запирать swap-btn внутри карточки */
 .game-card {
     position: relative;
+    top: 0;
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     width: 136px;
     flex-shrink: 0;
-    overflow: hidden;
     border: 1px solid var(--border-lighter);
-    transition: all 0.2s ease;
+    transition: top var(--transition-base) ease,
+                box-shadow var(--transition-base) ease,
+                border-color var(--transition-base) ease;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
 .game-card:hover {
-    transform: translateY(-3px);
+    top: calc(-1 * var(--card-hover-lift));
     box-shadow: var(--shadow-lg);
 }
 
@@ -404,6 +417,7 @@ button:hover {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
 }
 
 .game-cover img {
@@ -435,6 +449,71 @@ button:hover {
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: var(--spacing-xs);
+}
+
+/* ===== Кнопка смены порядка (для игр с одинаковой оценкой) ===== */
+.swap-btn {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translate(calc(50% + var(--spacing-lg) / 2), -50%);
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+    background-size: 300% 300%;
+    border: 2px solid #fff;
+    color: white;
+    cursor: pointer;
+    box-shadow:
+        0 4px 14px rgba(59, 130, 246, 0.55),
+        0 2px 8px rgba(139, 92, 246, 0.4),
+        0 0 0 1px rgba(139, 92, 246, 0.2);
+    transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1),
+                top var(--transition-base) ease,
+                box-shadow 0.25s ease;
+    z-index: 100;
+    animation: swapGradient 4s ease infinite;
+    font-family: inherit;
+}
+
+/* Компенсация сдвига карточки при hover:
+   карточка уезжает вверх на --card-hover-lift, кнопка опускается на столько же
+   относительно карточки — так на экране она остаётся неподвижной */
+.game-card:hover .swap-btn {
+    top: calc(50% + var(--card-hover-lift));
+}
+
+@keyframes swapGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.swap-btn:hover {
+    transform: translate(calc(50% + var(--spacing-lg) / 2), -50%) scale(1.18);
+    box-shadow:
+        0 8px 22px rgba(59, 130, 246, 0.75),
+        0 4px 14px rgba(236, 72, 153, 0.55),
+        0 0 0 3px rgba(139, 92, 246, 0.25);
+}
+
+.swap-btn:active {
+    transform: translate(calc(50% + var(--spacing-lg) / 2), -50%) scale(0.92);
+}
+
+.swap-btn i {
+    font-size: 0.82rem;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    transition: transform 0.3s ease;
+}
+
+.swap-btn:hover i {
+    transform: rotate(180deg);
 }
 
 .game-score-badge {
@@ -1134,11 +1213,7 @@ input[type="range"]::-webkit-slider-thumb {
     transform: scale(1.12);
 }
 
-.param-name {
-    display: inline-flex;
-    align-items: center;
-}
-
+.param-name,
 .score-row > span:first-child {
     display: inline-flex;
     align-items: center;
