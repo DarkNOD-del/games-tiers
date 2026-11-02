@@ -57,6 +57,15 @@ const TIER_RULES = [{
     max: 5.0
 }];
 
+const TIER_COLORS = {
+    S: '#eab308',
+    A: '#10b981',
+    B: '#3b82f6',
+    C: '#f97316',
+    D: '#ef4444',
+    F: '#94a3b8'
+};
+
 /* ===== Уровни достижений ===== */
 const ACHIEVEMENT_LEVELS = [
     { value: -0.5, emoji: "❓",  name: "Не указано",       color: "#94a3b8" },
@@ -111,6 +120,19 @@ function formatNumber(num) {
     }).replace(',', '.');
 }
 
+function sum(arr) {
+    return arr.reduce((a, b) => a + b, 0);
+}
+
+function setStat(id, value) {
+    document.getElementById(id).innerText = value;
+}
+
+function setStatPair(valueId, nameId, value, name) {
+    document.getElementById(valueId).innerText = value;
+    document.getElementById(nameId).innerText = name;
+}
+
 function sortTiers() {
     for (let tier of TIER_RULES) {
         tierlistData[tier.id].sort((a, b) => b.avgScore - a.avgScore);
@@ -118,10 +140,11 @@ function sortTiers() {
 }
 
 function showToast(msg, type = 'info') {
+    const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
     let c = document.getElementById('toastContainer'),
         t = document.createElement('div');
     t.className = `toast ${type}`;
-    t.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':type==='error'?'fa-exclamation-circle':'fa-info-circle'}" style="margin-right:8px;"></i> ${msg}`;
+    t.innerHTML = `<i class="fas ${icons[type] || icons.info}" style="margin-right:8px;"></i> ${msg}`;
     c.appendChild(t);
     setTimeout(() => {
         t.classList.add('fade-out');
@@ -233,6 +256,45 @@ window.addEventListener('resize', () => {
 });
 
 /* ===== Тирлист ===== */
+function swapGames(tierId, i, j) {
+    const arr = tierlistData[tierId];
+    if (i < 0 || j >= arr.length || i === j) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    renderTiers();
+}
+
+function areScoresEqual(a, b) {
+    return a.avgScore.toFixed(2) === b.avgScore.toFixed(2);
+}
+
+function createSwapButton(tierId, idx) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "swap-btn";
+    btn.title = "Поменять местами (одинаковая оценка)";
+    btn.setAttribute("aria-label", "Поменять игры местами");
+    btn.innerHTML = '<i class="fas fa-right-left"></i>';
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        swapGames(tierId, idx, idx + 1);
+    };
+    return btn;
+}
+
+function createGameCard(game, tierId, idx) {
+    const card = document.createElement("div");
+    card.className = "game-card";
+    card.innerHTML = `
+        <div class="game-cover">
+            ${game.coverUrl ? `<img src="${game.coverUrl}">` : '<div class="no-cover"><i class="fas fa-image" style="font-size:2rem; color:#cbd5e1;"></i></div>'}
+        </div>
+        <div class="game-score-badge"><i class="fas fa-star"></i> ${game.avgScore}</div>
+        ${game.isDlc ? '<div class="game-dlc-badge"><i class="fas fa-box-open"></i> DLC</div>' : ''}
+        <div class="game-info"><div class="game-title">${escapeHtml(game.name)}</div></div>`;
+    card.onclick = () => openDetail(game, tierId, idx);
+    return card;
+}
+
 function renderTiers() {
     sortTiers();
     let c = document.getElementById("tiersContainer");
@@ -251,16 +313,10 @@ function renderTiers() {
 
         let gDiv = div.querySelector('.games-container');
         games.forEach((game, idx) => {
-            let card = document.createElement("div");
-            card.className = "game-card";
-            card.innerHTML = `
-                <div class="game-cover">
-                    ${game.coverUrl ? `<img src="${game.coverUrl}">` : '<div class="no-cover"><i class="fas fa-image" style="font-size:2rem; color:#cbd5e1;"></i></div>'}
-                </div>
-                <div class="game-score-badge"><i class="fas fa-star"></i> ${game.avgScore}</div>
-                ${game.isDlc ? '<div class="game-dlc-badge"><i class="fas fa-box-open"></i> DLC</div>' : ''}
-                <div class="game-info"><div class="game-title">${escapeHtml(game.name)}</div></div>`;
-            card.onclick = () => openDetail(game, tier.id, idx);
+            const card = createGameCard(game, tier.id, idx);
+            if (idx < games.length - 1 && areScoresEqual(game, games[idx + 1])) {
+                card.appendChild(createSwapButton(tier.id, idx));
+            }
             gDiv.appendChild(card);
         });
         c.appendChild(div);
@@ -424,86 +480,83 @@ function updateValueChart() {
     });
 }
 
+/* ===== Диаграмма тиров ===== */
+function updateTierChart() {
+    const maxC = Math.max(...TIER_RULES.map(t => tierlistData[t.id].length), 1);
+    document.getElementById("tierChart").innerHTML = [...TIER_RULES].reverse().map(tier => {
+        const color = TIER_COLORS[tier.id];
+        const count = tierlistData[tier.id].length;
+        return `<div class="bar-item">
+            <div class="bar" style="height: ${count/maxC*150}px; background: linear-gradient(180deg, ${color}, #cbd5e1);"></div>
+            <div class="bar-label">${tier.label}</div>
+            <div class="bar-count">${formatNumber(count)} шт.</div>
+        </div>`;
+    }).join('');
+}
+
 /* ===== Статистика ===== */
 function updateStats() {
-    let all = getAllGames();
+    const all = getAllGames();
 
-    document.getElementById("statTotalGames").innerText = formatNumber(all.length);
+    setStat("statTotalGames", formatNumber(all.length));
 
-    let hours = all.filter(g => g.hours != null).map(g => g.hours);
-    document.getElementById("statAvgTime").innerText = hours.length ? formatNumber(hours.reduce((a, b) => a + b, 0) / hours.length) : "—";
-    document.getElementById("statTotalTime").innerText = hours.length ? formatNumber(hours.reduce((a, b) => a + b, 0)) : "—";
+    const hours = all.filter(g => g.hours != null).map(g => g.hours);
+    setStat("statAvgTime", hours.length ? formatNumber(sum(hours) / hours.length) : "—");
+    setStat("statTotalTime", hours.length ? formatNumber(sum(hours)) : "—");
 
-    let prices = all.filter(g => g.price != null).map(g => g.price);
-    document.getElementById("statAvgPrice").innerText = prices.length ? formatNumber(prices.reduce((a, b) => a + b, 0) / prices.length) : "—";
-    document.getElementById("statTotalPrice").innerText = prices.length ? formatNumber(prices.reduce((a, b) => a + b, 0)) : "—";
+    const prices = all.filter(g => g.price != null).map(g => g.price);
+    setStat("statAvgPrice", prices.length ? formatNumber(sum(prices) / prices.length) : "—");
+    setStat("statTotalPrice", prices.length ? formatNumber(sum(prices)) : "—");
 
-    let difficulties = all.filter(g => g.difficulty >= 0).map(g => g.difficulty);
-    document.getElementById("statAvgDifficulty").innerText = difficulties.length ? formatNumber(difficulties.reduce((a, b) => a + b, 0) / difficulties.length) : "—";
+    const diffs = all.filter(g => g.difficulty >= 0).map(g => g.difficulty);
+    setStat("statAvgDifficulty", diffs.length ? formatNumber(sum(diffs) / diffs.length) : "—");
 
-    let gp = all.filter(g => g.price != null);
+    // Самая дорогая
+    const gp = all.filter(g => g.price != null);
     if (gp.length) {
-        let most = gp.reduce((m, g) => g.price > m.price ? g : m, gp[0]);
-        document.getElementById("statMostExpensive").innerText = formatNumber(most.price);
-        document.getElementById("statMostExpensiveGame").innerText = most.name;
+        const most = gp.reduce((m, g) => g.price > m.price ? g : m);
+        setStatPair("statMostExpensive", "statMostExpensiveGame", formatNumber(most.price), most.name);
     } else {
-        document.getElementById("statMostExpensive").innerText = "—";
-        document.getElementById("statMostExpensiveGame").innerText = "Нет данных";
+        setStatPair("statMostExpensive", "statMostExpensiveGame", "—", "Нет данных");
     }
 
-    let gr = all.filter(g => g.avgScore > 0);
+    // Самая высокооценённая
+    const gr = all.filter(g => g.avgScore > 0);
     if (gr.length) {
-        let hr = gr.reduce((m, g) => g.avgScore > m.avgScore ? g : m, gr[0]);
-        document.getElementById("statHighestRated").innerText = formatNumber(hr.avgScore);
-        document.getElementById("statHighestRatedGame").innerText = hr.name;
+        const hr = gr.reduce((m, g) => g.avgScore > m.avgScore ? g : m);
+        setStatPair("statHighestRated", "statHighestRatedGame", formatNumber(hr.avgScore), hr.name);
     } else {
-        document.getElementById("statHighestRated").innerText = "—";
-        document.getElementById("statHighestRatedGame").innerText = "Нет данных";
+        setStatPair("statHighestRated", "statHighestRatedGame", "—", "Нет данных");
     }
 
-    let gs = all.filter(g => g.size != null);
+    // Самая тяжёлая / лёгкая
+    const gs = all.filter(g => g.size != null);
     if (gs.length) {
-        let large = gs.reduce((m, g) => g.size > m.size ? g : m, gs[0]),
-            small = gs.reduce((m, g) => g.size < m.size ? g : m, gs[0]);
-        document.getElementById("statLargestSize").innerText = formatNumber(large.size);
-        document.getElementById("statLargestSizeGame").innerText = large.name;
-        document.getElementById("statSmallestSize").innerText = formatNumber(small.size);
-        document.getElementById("statSmallestSizeGame").innerText = small.name;
+        const large = gs.reduce((m, g) => g.size > m.size ? g : m);
+        const small = gs.reduce((m, g) => g.size < m.size ? g : m);
+        setStatPair("statLargestSize", "statLargestSizeGame", formatNumber(large.size), large.name);
+        setStatPair("statSmallestSize", "statSmallestSizeGame", formatNumber(small.size), small.name);
     } else {
-        document.getElementById("statLargestSize").innerText = "—";
-        document.getElementById("statLargestSizeGame").innerText = "Нет данных";
-        document.getElementById("statSmallestSize").innerText = "—";
-        document.getElementById("statSmallestSizeGame").innerText = "Нет данных";
+        setStatPair("statLargestSize", "statLargestSizeGame", "—", "Нет данных");
+        setStatPair("statSmallestSize", "statSmallestSizeGame", "—", "Нет данных");
     }
 
-    let gh = all.filter(g => g.hours != null && g.hours > 0);
+    // Самая длинная / короткая
+    const gh = all.filter(g => g.hours != null && g.hours > 0);
     if (gh.length) {
-        let long = gh.reduce((m, g) => g.hours > m.hours ? g : m, gh[0]),
-            short = gh.reduce((m, g) => g.hours < m.hours ? g : m, gh[0]);
-        document.getElementById("statLongest").innerText = formatNumber(long.hours);
-        document.getElementById("statLongestGame").innerText = long.name;
-        document.getElementById("statShortest").innerText = formatNumber(short.hours);
-        document.getElementById("statShortestGame").innerText = short.name;
+        const long = gh.reduce((m, g) => g.hours > m.hours ? g : m);
+        const short = gh.reduce((m, g) => g.hours < m.hours ? g : m);
+        setStatPair("statLongest", "statLongestGame", formatNumber(long.hours), long.name);
+        setStatPair("statShortest", "statShortestGame", formatNumber(short.hours), short.name);
     } else {
-        document.getElementById("statLongest").innerText = "—";
-        document.getElementById("statLongestGame").innerText = "Нет данных";
-        document.getElementById("statShortest").innerText = "—";
-        document.getElementById("statShortestGame").innerText = "Нет данных";
+        setStatPair("statLongest", "statLongestGame", "—", "Нет данных");
+        setStatPair("statShortest", "statShortestGame", "—", "Нет данных");
     }
 
     updateRadarChart();
     updateAchievementsChart();
     updateValueChart();
-
-    let maxC = Math.max(...TIER_RULES.map(t => tierlistData[t.id].length), 1);
-    document.getElementById("tierChart").innerHTML = [...TIER_RULES].reverse().map(tier => {
-        let color = tier.id === 'S' ? '#eab308' : tier.id === 'A' ? '#10b981' : tier.id === 'B' ? '#3b82f6' : tier.id === 'C' ? '#f97316' : tier.id === 'D' ? '#ef4444' : '#94a3b8';
-        return `<div class="bar-item">
-            <div class="bar" style="height: ${tierlistData[tier.id].length/maxC*150}px; background: linear-gradient(180deg, ${color}, #cbd5e1);"></div>
-            <div class="bar-label">${tier.label}</div>
-            <div class="bar-count">${formatNumber(tierlistData[tier.id].length)} шт.</div>
-        </div>`;
-    }).join('');
+    updateTierChart();
 }
 
 /* ===== Детали игры ===== */
@@ -693,7 +746,6 @@ function saveGame() {
     if (editingMode && editingTarget) {
         let { tierId, idx } = editingTarget;
         tierlistData[tierId][idx] = { ...window.tempGame };
-        tierlistData[tierId][idx].avgScore = window.tempGame.avgScore;
         let newTier = getTierId(window.tempGame.avgScore);
         if (newTier !== tierId) {
             let moved = tierlistData[tierId].splice(idx, 1)[0];
@@ -703,12 +755,10 @@ function saveGame() {
             showToast(`"${name}" обновлена`, "success");
         }
     } else {
-        let newGame = { ...window.tempGame };
-        tierlistData[getTierId(newGame.avgScore)].push(newGame);
+        tierlistData[getTierId(window.tempGame.avgScore)].push({ ...window.tempGame });
         showToast(`"${name}" добавлена`, "success");
     }
 
-    sortTiers();
     renderTiers();
     document.getElementById("editModal").style.display = "none";
     document.body.classList.remove('no-scroll');
@@ -718,7 +768,6 @@ function deleteCurrentGame() {
     if (!currentDetail) return;
     let { tierId, idx, game } = currentDetail;
     tierlistData[tierId].splice(idx, 1);
-    sortTiers();
     renderTiers();
     showToast(`"${game.name}" удалена`, "warning");
     document.getElementById("detailModal").style.display = "none";
@@ -781,7 +830,6 @@ document.getElementById("loadDataBtn").onclick = () => {
             try {
                 let data = JSON.parse(ev.target.result);
                 if (data.tiers) tierlistData = data.tiers;
-                sortTiers();
                 renderTiers();
                 showToast("Загружено", "success");
             } catch (e) {
